@@ -189,6 +189,7 @@ def _patched_clear_old_weight_data(self):
 def apply_vllm_model_runner_patches():
     print(f"[PATCH] Applying model runner patches in process {os.getpid()}...")
     try:
+        # Patch v0 GPUModelRunnerBase load_model
         from vllm.worker.model_runner import GPUModelRunnerBase
 
         GPUModelRunnerBase._acquire_weight_lock = _patched_acquire_weight_lock
@@ -200,13 +201,35 @@ def apply_vllm_model_runner_patches():
         GPUModelRunnerBase._clear_old_weight_data = _patched_clear_old_weight_data
 
         if not hasattr(GPUModelRunnerBase, '_original_load_model'):
+            print("[VLLM_PATCH_CORE] Start to patching GPUModelRunnerBase.load_model to handle weight metadata loading")
             GPUModelRunnerBase._original_load_model = GPUModelRunnerBase.load_model
             def patched_load_model(self):
-                print("[VLLM_PATCH_CORE] Patching GPUModelRunnerBase.load_model to handle weight metadata loading")
+                print("[VLLM_PATCH_CORE] Patched GPUModelRunnerBase.load_model to handle weight metadata loading")
                 self._original_load_model()
                 # Register hooks after model is loaded
                 self._register_weight_hooks()
             GPUModelRunnerBase.load_model = patched_load_model
+
+        # Patch v1 GPUModelRunner load_model
+        from vllm.v1.worker.gpu_model_runner import GPUModelRunner
+
+        GPUModelRunner._acquire_weight_lock = _patched_acquire_weight_lock
+        GPUModelRunner._release_weight_lock = _patched_release_weight_lock
+        GPUModelRunner._register_weight_hooks = _patched_register_weight_hooks
+        GPUModelRunner._save_weight_meta = _patched_save_weight_meta
+        GPUModelRunner._save_total_weight_meta = _patched_save_total_weight_meta
+        GPUModelRunner._calculate_device_weight_sizes = _patched_calculate_device_weight_sizes
+        GPUModelRunner._clear_old_weight_data = _patched_clear_old_weight_data
+
+        if not hasattr(GPUModelRunner, '_original_load_model'):
+            print("[VLLM_PATCH_CORE] Start to patching GPUModelRunner.load_model to handle weight metadata loading")
+            GPUModelRunner._original_load_model = GPUModelRunner.load_model
+            def patched_load_model(self):
+                print("[VLLM_PATCH_CORE] Patched GPUModelRunner.load_model to handle weight metadata loading")
+                self._original_load_model()
+                # Register hooks after model is loaded
+                self._register_weight_hooks()
+            GPUModelRunner.load_model = patched_load_model
             
     except Exception as e:
         print(f"[VLLM_PATCH_CORE] Failed to apply GPUModelRunnerBase patches: {e}")
