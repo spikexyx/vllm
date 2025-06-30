@@ -215,18 +215,19 @@ def apply_vllm_model_runner_patches():
 # ====================================================================
 # Patch the subprocesses entrypoint functions
 
-def patched_worker_init_worker(self) -> None:
+def patched_run_worker_process(self) -> None:
     print(f"[VLLM_PATCH_CORE] Patching worker:init_worker in process {os.getpid()} ...")
     apply_vllm_model_runner_patches()
 
     # from vllm.worker.worker import Worker
+    import vllm.executor.multiproc_worker_utils as multiproc_worker_utils_module
 
-    # if not hasattr(self, '_original_worker_init_worker'):
-    #     self._original_worker_init_worker = self.init_worker
+    if not hasattr(multiproc_worker_utils_module, '_original_run_worker_process'):
+        self._original_run_worker_process = multiproc_worker_utils_module._run_worker_process
 
-    assert hasattr(self, '_original_worker_init_device'), "Original worker_base.init_worker method not found."
+    assert hasattr(multiproc_worker_utils_module, '_original_run_worker_process'), "Original multiproc_worker_utils _run_worker_process method not found."
 
-    self._original_worker_init_worker()
+    self._original_run_worker_process()
     
 
 # ===================================================================
@@ -235,19 +236,13 @@ def apply_entrypoint_patches():
     print(f"[VLLM_PATCH_CORE] Applying entrypoint patches for vLLM server in {os.getpid()} ...")
 
     try:
-        apply_vllm_model_runner_patches()
+        import vllm.executor.multiproc_worker_utils as multiproc_worker_utils_module
+
+        if not hasattr(multiproc_worker_utils_module, '_original_run_worker_process'):
+            multiproc_worker_utils_module._original_run_worker_process = multiproc_worker_utils_module._run_worker_process
+
+        multiproc_worker_utils_module._run_worker_process = patched_run_worker_process
+
     except Exception as e:
-        print(f"[VLLM_PATCH_CORE] Failed to apply model runner patches: {e}")
+        print(f"[VLLM_PATCH_CORE] Failed to import necessary modules for entrypoint patching: {e}")
         return
-
-    # try:
-    #     from vllm.worker.worker_base import WorkerWrapperBase
-
-    #     if not hasattr(WorkerWrapperBase, '_original_worker_init_worker'):
-    #         WorkerWrapperBase._original_worker_init_worker = WorkerWrapperBase.init_worker
-
-    #     WorkerWrapperBase.init_worker = patched_worker_init_worker
-
-    # except Exception as e:
-    #     print(f"[VLLM_PATCH_CORE] Failed to import necessary modules for entrypoint patching: {e}")
-    #     return
