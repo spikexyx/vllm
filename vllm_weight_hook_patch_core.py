@@ -472,7 +472,7 @@ def apply_vllm_model_runner_patches():
 
 # ====================================================================
 # Patch the subprocesses entrypoint functions
-
+# TODO: Not in use. Now we apply all patches to all subprocesses.
 def patched_run_worker_process(self) -> None:
     print(f"[VLLM_PATCH_CORE] Patching worker:init_worker in process {os.getpid()} ...")
     apply_vllm_model_runner_patches()
@@ -489,7 +489,7 @@ def patched_run_worker_process(self) -> None:
     
 
 # ===================================================================
-# Patch core entrypoint
+# Patch core entrypoint, used in patch loader
 def apply_entrypoint_patches():
     print(f"[VLLM_PATCH_CORE] Applying entrypoint patches for vLLM server in {os.getpid()} ...")
 
