@@ -215,18 +215,18 @@ def apply_vllm_model_runner_patches():
 # ====================================================================
 # Patch the subprocesses entrypoint functions
 
-def patched_worker_init_device(self) -> None:
-    print(f"[VLLM_PATCH_CORE] Patching worker_init_device in process {os.getpid()} ...")
+def patched_worker_init_worker(self) -> None:
+    print(f"[VLLM_PATCH_CORE] Patching worker:init_worker in process {os.getpid()} ...")
     apply_vllm_model_runner_patches()
 
     # from vllm.worker.worker import Worker
 
-    if not hasattr(self, '_original_worker_init_device'):
-        self._original_worker_init_device = self.init_device
+    if not hasattr(self, '_original_worker_init_worker'):
+        self._original_worker_init_worker = self.init_worker
 
-    assert hasattr(self, '_original_worker_init_device'), "Original worker.init_device method not found."
+    assert hasattr(self, '_original_worker_init_device'), "Original worker_base.init_worker method not found."
 
-    self._original_worker_init_device()
+    self._original_worker_init_worker()
     
 
 # ===================================================================
@@ -235,12 +235,12 @@ def apply_entrypoint_patches():
     print(f"[VLLM_PATCH_CORE] Applying entrypoint patches for vLLM server in {os.getpid()} ...")
 
     try:
-        from vllm.worker.worker import Worker
+        from vllm.worker.worker_base import WorkerWrapperBase
 
-        if not hasattr(Worker, '_original_worker_init_device'):
-            Worker._original_worker_init_device = Worker.init_device
+        if not hasattr(WorkerWrapperBase, '_original_worker_init_worker'):
+            WorkerWrapperBase._original_worker_init_worker = WorkerWrapperBase.init_worker
 
-        Worker.init_device = patched_worker_init_device
+        WorkerWrapperBase.init_worker = patched_worker_init_worker
 
     except Exception as e:
         print(f"[VLLM_PATCH_CORE] Failed to import necessary modules for entrypoint patching: {e}")
