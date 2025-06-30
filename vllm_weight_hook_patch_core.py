@@ -221,8 +221,8 @@ def patched_worker_init_worker(self) -> None:
 
     # from vllm.worker.worker import Worker
 
-    if not hasattr(self, '_original_worker_init_worker'):
-        self._original_worker_init_worker = self.init_worker
+    # if not hasattr(self, '_original_worker_init_worker'):
+    #     self._original_worker_init_worker = self.init_worker
 
     assert hasattr(self, '_original_worker_init_device'), "Original worker_base.init_worker method not found."
 
