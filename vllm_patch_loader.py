@@ -8,28 +8,29 @@ def is_vllm_process():
     Detects if the current process is the main SGLang server process.
     This combines the most reliable checks we've found.
     """
-    argv = sys.argv
-    main_module = sys.modules.get('__main__')
+    # argv = sys.argv
+    # main_module = sys.modules.get('__main__')
 
-    # --- Check 1: The most reliable method via runpy ---
-    # `python -m sglang.launch_server` is executed by the `runpy` module.
-    if main_module and hasattr(main_module, '__file__') and main_module.__file__:
-        if 'runpy.py' in main_module.__file__ and 'sglang.launch_server' in argv:
-            print("[SGLANG_PATCH_LOADER] >> Detected main process via runpy.")
-            return True
+    # # --- Check 1: The most reliable method via runpy ---
+    # # if vllm is executed by the `runpy` module.
+    # if main_module and hasattr(main_module, '__file__') and main_module.__file__:
+    #     if 'runpy.py' in main_module.__file__ and 'sglang.launch_server' in argv:
+    #         print("[SGLANG_PATCH_LOADER] >> Detected main process via runpy.")
+    #         return True
 
-    # --- Check 2: Fallback for your specific environment's argv structure ---
-    # sys.argv is ['-m', '--model-path', ...]
-    if len(argv) > 1 and argv[0] == '-m' and '--model-path' in argv:
-        print("[SGLANG_PATCH_LOADER] >> Detected main process via special argv heuristic.")
-        return True
+    # # --- Check 2: Fallback for your specific environment's argv structure ---
+    # # sys.argv is ['-m', '--model-path', ...]
+    # if len(argv) > 1 and argv[0] == '-m' and '--model-path' in argv:
+    #     print("[SGLANG_PATCH_LOADER] >> Detected main process via special argv heuristic.")
+    #     return True
         
-    # --- Check 3: Standard argv check (less likely for you but good for general use) ---
-    if len(argv) > 0 and 'sglang/launch_server.py' in argv[0]:
-        print("[SGLANG_PATCH_LOADER] >> Detected main process via script path in argv.")
-        return True
+    # # --- Check 3: Standard argv check (less likely for you but good for general use) ---
+    # if len(argv) > 0 and 'sglang/launch_server.py' in argv[0]:
+    #     print("[SGLANG_PATCH_LOADER] >> Detected main process via script path in argv.")
+    #     return True
 
-    return False
+    # return False
+    return True # TODO: check vllm process
 
 def run_patch():
     """
@@ -40,9 +41,7 @@ def run_patch():
     # This entire block of code will run in every process (main and children)
     # because of the .pth mechanism.
     
-    # However, we only take action in the main process.
-    # if is_vllm_process():
-    if True:
+    if is_vllm_process():
         # print(f"[SGLANG_PATCH_LOADER] >> Main SGLang process (PID: {os.getpid()}) confirmed. Applying patch now...")
         try:
             # Import the patch core only when needed
