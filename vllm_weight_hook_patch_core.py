@@ -235,13 +235,19 @@ def apply_entrypoint_patches():
     print(f"[VLLM_PATCH_CORE] Applying entrypoint patches for vLLM server in {os.getpid()} ...")
 
     try:
-        from vllm.worker.worker_base import WorkerWrapperBase
-
-        if not hasattr(WorkerWrapperBase, '_original_worker_init_worker'):
-            WorkerWrapperBase._original_worker_init_worker = WorkerWrapperBase.init_worker
-
-        WorkerWrapperBase.init_worker = patched_worker_init_worker
-
+        apply_vllm_model_runner_patches()
     except Exception as e:
-        print(f"[VLLM_PATCH_CORE] Failed to import necessary modules for entrypoint patching: {e}")
+        print(f"[VLLM_PATCH_CORE] Failed to apply model runner patches: {e}")
         return
+
+    # try:
+    #     from vllm.worker.worker_base import WorkerWrapperBase
+
+    #     if not hasattr(WorkerWrapperBase, '_original_worker_init_worker'):
+    #         WorkerWrapperBase._original_worker_init_worker = WorkerWrapperBase.init_worker
+
+    #     WorkerWrapperBase.init_worker = patched_worker_init_worker
+
+    # except Exception as e:
+    #     print(f"[VLLM_PATCH_CORE] Failed to import necessary modules for entrypoint patching: {e}")
+    #     return
