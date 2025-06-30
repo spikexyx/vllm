@@ -236,13 +236,20 @@ def apply_entrypoint_patches():
     print(f"[VLLM_PATCH_CORE] Applying entrypoint patches for vLLM server in {os.getpid()} ...")
 
     try:
-        import vllm.executor.multiproc_worker_utils as multiproc_worker_utils_module
-
-        if not hasattr(multiproc_worker_utils_module, '_original_run_worker_process'):
-            multiproc_worker_utils_module._original_run_worker_process = multiproc_worker_utils_module._run_worker_process
-
-        multiproc_worker_utils_module._run_worker_process = patched_run_worker_process
+        apply_vllm_model_runner_patches()
 
     except Exception as e:
-        print(f"[VLLM_PATCH_CORE] Failed to import necessary modules for entrypoint patching: {e}")
+        print(f"[VLLM_PATCH_CORE] Failed to apply model runner patches: {e}")
         return
+
+    # try:
+    #     import vllm.executor.multiproc_worker_utils as multiproc_worker_utils_module
+
+    #     if not hasattr(multiproc_worker_utils_module, '_original_run_worker_process'):
+    #         multiproc_worker_utils_module._original_run_worker_process = multiproc_worker_utils_module._run_worker_process
+
+    #     multiproc_worker_utils_module._run_worker_process = patched_run_worker_process
+
+    # except Exception as e:
+    #     print(f"[VLLM_PATCH_CORE] Failed to import necessary modules for entrypoint patching: {e}")
+    #     return

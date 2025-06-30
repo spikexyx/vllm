@@ -66,6 +66,6 @@ def run_patch():
 
 # --- Entry point called by the .pth file ---
 # Add a global guard to ensure this runs only once per process, even if imported multiple times.
-if not hasattr(sys, '_vllm_patch_applied'):
-    run_patch()
+# if not hasattr(sys, '_vllm_patch_applied'):
+run_patch()
 
