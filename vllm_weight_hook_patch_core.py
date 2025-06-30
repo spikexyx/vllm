@@ -129,7 +129,6 @@ def _patched_calculate_device_weight_sizes(self, unit: str = "bytes") -> dict:
     """
     device_sizes = {}  # {device: total_size_in_bytes}
 
-    # 遍历所有 weight_infos，按 device 累加 size
     for info in self.weight_infos.values():
         device = info["device"]
         size = info["size"]
@@ -138,7 +137,6 @@ def _patched_calculate_device_weight_sizes(self, unit: str = "bytes") -> dict:
         else:
             device_sizes[device] = size
 
-    # 单位转换
     unit = unit.upper()
     if unit == "KB":
         return {device: size / 1024 for device, size in device_sizes.items()}

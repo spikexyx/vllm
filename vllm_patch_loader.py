@@ -1,4 +1,13 @@
-# vllm_patch_loader.py (Optimized: Patch only in the main process)
+# vllm_patch_loader.py
+'''
+Usage: 
+Use install_vllm_hook_patch.sh to install the VLLM patch.
+Use uninstall_vllm_hook_patch.sh to remove the patch.
+Or manually:
+Put vllm_patch_loader.py & vllm_weight_hook_patch_core.py & vllm_injector.pth into the python site-packages directory of the target environment.
+Use this command to find the site-packages directory:
+python -c "import site; print(site.getsitepackages()[0])"
+'''
 
 import os
 import sys
