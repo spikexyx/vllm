@@ -183,11 +183,8 @@ def _patched_clear_old_weight_data(self):
 
 # ===================================================================
 # Monkey patch the ModelRunner classes load_model method
-
-def apply_vllm_model_runner_patches():
-    print(f"[PATCH] Applying model runner patches in process {os.getpid()}...")
+def apply_vllm_v0_gpu_model_runner_patch():
     try:
-        # ==============================   v0   ===============================
         # Patch v0 GPUModelRunnerBase load_model
         from vllm.worker.model_runner import GPUModelRunnerBase
 
@@ -208,7 +205,12 @@ def apply_vllm_model_runner_patches():
                 # Register hooks after model is loaded
                 self._register_weight_hooks()
             GPUModelRunnerBase.load_model = patched_load_model
-
+    except Exception as e:
+        print(f"[VLLM_PATCH_CORE] Failed to apply GPUModelRunnerBase patches: {e}")
+        return
+    
+def apply_vllm_v0_hpu_model_runner_patch():
+    try:
         # Patch v0 hpu_model_runner load_model
         from vllm.worker.hpu_model_runner import HPUModelRunnerBase
 
@@ -230,6 +232,12 @@ def apply_vllm_model_runner_patches():
                 self._register_weight_hooks()
             HPUModelRunnerBase.load_model = patched_load_model
 
+    except Exception as e:
+        print(f"[VLLM_PATCH_CORE] Failed to apply HPUModelRunner patches: {e}")
+        return
+    
+def apply_vllm_v0_multi_step_neuron_model_runner_patch():
+    try:
         # Patch v0 multi_step_neuron_model_runner load_model
         from vllm.worker.multi_step_neuron_model_runner import MultiStepNeuronModelRunner
 
@@ -251,6 +259,12 @@ def apply_vllm_model_runner_patches():
                 self._register_weight_hooks()
             MultiStepNeuronModelRunner.load_model = patched_load_model
 
+    except Exception as e:
+        print(f"[VLLM_PATCH_CORE] Failed to apply MultiStepNeuronModelRunner patches: {e}")
+        return
+    
+def apply_vllm_v0_multi_step_neuronx_distributed_model_runner_patch():
+    try:
         # Patch v0 multi_step_neuronx_distributed_model_runner load_model
         from vllm.worker.multi_step_neuronx_distributed_model_runner import MultiStepNeuronxDistributedModelRunner
 
@@ -272,6 +286,12 @@ def apply_vllm_model_runner_patches():
                 self._register_weight_hooks()
             MultiStepNeuronxDistributedModelRunner.load_model = patched_load_model
 
+    except Exception as e:
+        print(f"[VLLM_PATCH_CORE] Failed to apply MultiStepNeuronxDistributedModelRunner patches: {e}")
+        return
+    
+def apply_vllm_v0_neuron_model_runner_patch():
+    try:
         # Patch v0 neuron_model_runner load_model
         from vllm.worker.neuron_model_runner import NeuronModelRunner
 
@@ -293,6 +313,12 @@ def apply_vllm_model_runner_patches():
                 self._register_weight_hooks()
             NeuronModelRunner.load_model = patched_load_model
 
+    except Exception as e:
+        print(f"[VLLM_PATCH_CORE] Failed to apply NeuronModelRunner patches: {e}")
+        return
+    
+def apply_vllm_v0_neuronx_distributed_model_runner_patch():
+    try:
         # Patch v0 neuronx_distributed_model_runner load_model
         from vllm.worker.neuronx_distributed_model_runner import NeuronxDistributedModelRunner
 
@@ -314,27 +340,12 @@ def apply_vllm_model_runner_patches():
                 self._register_weight_hooks()
             NeuronxDistributedModelRunner.load_model = patched_load_model
 
-        # Patch v0 tpu_model_runner load_model
-        from vllm.worker.tpu_model_runner import TPUModelRunner
-
-        TPUModelRunner._acquire_weight_lock = _patched_acquire_weight_lock
-        TPUModelRunner._release_weight_lock = _patched_release_weight_lock
-        TPUModelRunner._register_weight_hooks = _patched_register_weight_hooks
-        TPUModelRunner._save_weight_meta = _patched_save_weight_meta
-        TPUModelRunner._save_total_weight_meta = _patched_save_total_weight_meta
-        TPUModelRunner._calculate_device_weight_sizes = _patched_calculate_device_weight_sizes
-        TPUModelRunner._clear_old_weight_data = _patched_clear_old_weight_data
-
-        if not hasattr(TPUModelRunner, '_original_load_model'):
-            # print("[VLLM_PATCH_CORE] Start to patching TPUModelRunner.load_model to handle weight metadata loading")
-            TPUModelRunner._original_load_model = TPUModelRunner.load_model
-            def patched_load_model(self):
-                print("[VLLM_PATCH_CORE] Patched TPUModelRunner.load_model to handle weight metadata loading")
-                self._original_load_model()
-                # Register hooks after model is loaded
-                self._register_weight_hooks()
-            TPUModelRunner.load_model = patched_load_model
-
+    except Exception as e:
+        print(f"[VLLM_PATCH_CORE] Failed to apply NeuronxDistributedModelRunner patches: {e}")
+        return
+    
+def apply_vllm_v0_xpu_model_runner_patch():
+    try:
         # Patch v0 xpu_model_runner load_model
         from vllm.worker.xpu_model_runner import XPUModelRunner
 
@@ -356,8 +367,40 @@ def apply_vllm_model_runner_patches():
                 self._register_weight_hooks()
             XPUModelRunner.load_model = patched_load_model
 
-        # ==============================   v1   ===============================
-        # Patch v1 GPUModelRunner load_model
+    except Exception as e:
+        print(f"[VLLM_PATCH_CORE] Failed to apply XPUModelRunner patches: {e}")
+        return
+    
+def apply_vllm_v0_tpu_model_runner_patch():
+    try:
+        # Patch v0 tpu_model_runner load_model
+        from vllm.worker.tpu_model_runner import TPUModelRunner
+
+        TPUModelRunner._acquire_weight_lock = _patched_acquire_weight_lock
+        TPUModelRunner._release_weight_lock = _patched_release_weight_lock
+        TPUModelRunner._register_weight_hooks = _patched_register_weight_hooks
+        TPUModelRunner._save_weight_meta = _patched_save_weight_meta
+        TPUModelRunner._save_total_weight_meta = _patched_save_total_weight_meta
+        TPUModelRunner._calculate_device_weight_sizes = _patched_calculate_device_weight_sizes
+        TPUModelRunner._clear_old_weight_data = _patched_clear_old_weight_data
+
+        if not hasattr(TPUModelRunner, '_original_load_model'):
+            # print("[VLLM_PATCH_CORE] Start to patching TPUModelRunner.load_model to handle weight metadata loading")
+            TPUModelRunner._original_load_model = TPUModelRunner.load_model
+            def patched_load_model(self):
+                print("[VLLM_PATCH_CORE] Patched TPUModelRunner.load_model to handle weight metadata loading")
+                self._original_load_model()
+                # Register hooks after model is loaded
+                self._register_weight_hooks()
+            TPUModelRunner.load_model = patched_load_model
+
+    except Exception as e:
+        print(f"[VLLM_PATCH_CORE] Failed to apply TPUModelRunner patches: {e}")
+        return
+
+def apply_vllm_v1_gpu_model_runner_patch():
+    try:
+        # Patch v1 GPUModelRunnerBase load_model
         from vllm.v1.worker.gpu_model_runner import GPUModelRunner
 
         GPUModelRunner._acquire_weight_lock = _patched_acquire_weight_lock
@@ -378,6 +421,12 @@ def apply_vllm_model_runner_patches():
                 self._register_weight_hooks()
             GPUModelRunner.load_model = patched_load_model
 
+    except Exception as e:
+        print(f"[VLLM_PATCH_CORE] Failed to apply v1 GPUModelRunner patches: {e}")
+        return
+    
+def apply_vllm_v1_tpu_model_runner_patch():
+    try:
         # Patch v1 tpu_model_runner load_model
         from vllm.v1.worker.tpu_model_runner import TPUModelRunner
 
@@ -399,11 +448,27 @@ def apply_vllm_model_runner_patches():
                 self._register_weight_hooks()
             TPUModelRunner.load_model = patched_load_model
 
-        # ===============================   end   ===============================
-            
     except Exception as e:
-        print(f"[VLLM_PATCH_CORE] Failed to apply GPUModelRunnerBase patches: {e}")
+        print(f"[VLLM_PATCH_CORE] Failed to apply v1 TPUModelRunner patches: {e}")
         return
+    
+# ===================================================================
+# Apply all patches for all types of model runners
+def apply_vllm_model_runner_patches():
+    print(f"[PATCH] Applying model runner patches in process {os.getpid()}...")
+
+    apply_vllm_v0_gpu_model_runner_patch()
+    apply_vllm_v0_hpu_model_runner_patch()
+    apply_vllm_v0_multi_step_neuron_model_runner_patch()
+    apply_vllm_v0_multi_step_neuronx_distributed_model_runner_patch()
+    apply_vllm_v0_neuron_model_runner_patch()
+    apply_vllm_v0_neuronx_distributed_model_runner_patch()
+    apply_vllm_v0_xpu_model_runner_patch()
+    apply_vllm_v0_tpu_model_runner_patch()
+
+    apply_vllm_v1_gpu_model_runner_patch()
+    apply_vllm_v1_tpu_model_runner_patch()
+    
 
 # ====================================================================
 # Patch the subprocesses entrypoint functions
