@@ -3,7 +3,7 @@
 import os
 import sys
 
-def is_main_vllm_process():
+def is_vllm_process():
     """
     Detects if the current process is the main SGLang server process.
     This combines the most reliable checks we've found.
@@ -41,7 +41,7 @@ def run_patch():
     # because of the .pth mechanism.
     
     # However, we only take action in the main process.
-    # if is_main_vllm_process():
+    # if is_vllm_process():
     if True:
         # print(f"[SGLANG_PATCH_LOADER] >> Main SGLang process (PID: {os.getpid()}) confirmed. Applying patch now...")
         try:
@@ -50,7 +50,7 @@ def run_patch():
             
             apply_entrypoint_patches()
             
-            print(f"[VLLM_PATCH_LOADER] >> Patch successfully applied once in the main process.")
+            print(f"[VLLM_PATCH_LOADER] >> Patch successfully applied in process {os.getpid()}.")
             # We add a sentinel to prevent re-patching even in the same process, just in case.
             # This is a good defensive practice.
             setattr(sys, '_vllm_patch_applied', True)
