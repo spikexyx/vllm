@@ -1,0 +1,79 @@
+# vllm_patch_loader.py
+'''
+Usage: 
+Use install_vllm_hook_patch.sh to install the VLLM patch.
+Use uninstall_vllm_hook_patch.sh to remove the patch.
+Or manually:
+Put vllm_patch_loader.py & vllm_weight_hook_patch_core.py & vllm_injector.pth into the python site-packages directory of the target environment.
+Use this command to find the site-packages directory:
+python -c "import site; print(site.getsitepackages()[0])"
+'''
+
+import os
+import sys
+
+def is_vllm_process():
+    """
+    Detects if the current process is the main SGLang server process.
+    This combines the most reliable checks we've found.
+    """
+    # argv = sys.argv
+    # main_module = sys.modules.get('__main__')
+
+    # # --- Check 1: The most reliable method via runpy ---
+    # # if vllm is executed by the `runpy` module.
+    # if main_module and hasattr(main_module, '__file__') and main_module.__file__:
+    #     if 'runpy.py' in main_module.__file__ and 'sglang.launch_server' in argv:
+    #         print("[SGLANG_PATCH_LOADER] >> Detected main process via runpy.")
+    #         return True
+
+    # # --- Check 2: Fallback for your specific environment's argv structure ---
+    # # sys.argv is ['-m', '--model-path', ...]
+    # if len(argv) > 1 and argv[0] == '-m' and '--model-path' in argv:
+    #     print("[SGLANG_PATCH_LOADER] >> Detected main process via special argv heuristic.")
+    #     return True
+        
+    # # --- Check 3: Standard argv check (less likely for you but good for general use) ---
+    # if len(argv) > 0 and 'sglang/launch_server.py' in argv[0]:
+    #     print("[SGLANG_PATCH_LOADER] >> Detected main process via script path in argv.")
+    #     return True
+
+    # return False
+    return True # TODO: check vllm process
+
+def run_patch():
+    """
+    Applies the patch ONLY if the current process is identified as the
+    main SGLang server process. Child processes will inherit the patched state
+    and will not re-apply the patch.
+    """
+    # This entire block of code will run in every process (main and children)
+    # because of the .pth mechanism.
+    
+    if is_vllm_process():
+        # print(f"[SGLANG_PATCH_LOADER] >> Main SGLang process (PID: {os.getpid()}) confirmed. Applying patch now...")
+        try:
+            # Import the patch core only when needed
+            from vllm_weight_hook_patch_core import apply_entrypoint_patches
+            
+            apply_entrypoint_patches()
+            
+            print(f"[VLLM_PATCH_LOADER] >> Patch successfully applied in process {os.getpid()}.")
+            # We add a sentinel to prevent re-patching even in the same process, just in case.
+            # This is a good defensive practice.
+            setattr(sys, '_vllm_patch_applied', True)
+
+        except Exception as e:
+            print(f"[VLLM_PATCH_LOADER] !! ERROR: Failed to apply patch in the main process (PID: {os.getpid()}): {e}")
+    
+    # For child processes or any other python process, this script will now do nothing and exit silently.
+    # You can add a print here for debugging if you want to see it running in children.
+    # else:
+    #     print(f"[SGLANG_PATCH_LOADER] >> Skipping patch in process {os.getpid()} (not main sglang process).")
+
+
+# --- Entry point called by the .pth file ---
+# Add a global guard to ensure this runs only once per process, even if imported multiple times.
+# if not hasattr(sys, '_vllm_patch_applied'):
+run_patch()
+
