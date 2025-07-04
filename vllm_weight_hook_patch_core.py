@@ -454,20 +454,21 @@ def apply_vllm_v1_tpu_model_runner_patch():
     
 # ===================================================================
 # Apply all patches for all types of model runners
+# TODO: Confirm other model runners' patch methods
 def apply_vllm_model_runner_patches():
     print(f"[PATCH] Applying model runner patches in process {os.getpid()}...")
 
     apply_vllm_v0_gpu_model_runner_patch()
-    apply_vllm_v0_hpu_model_runner_patch()
-    apply_vllm_v0_multi_step_neuron_model_runner_patch()
-    apply_vllm_v0_multi_step_neuronx_distributed_model_runner_patch()
-    apply_vllm_v0_neuron_model_runner_patch()
-    apply_vllm_v0_neuronx_distributed_model_runner_patch()
-    apply_vllm_v0_xpu_model_runner_patch()
-    apply_vllm_v0_tpu_model_runner_patch()
+    # apply_vllm_v0_hpu_model_runner_patch()
+    # apply_vllm_v0_multi_step_neuron_model_runner_patch()
+    # apply_vllm_v0_multi_step_neuronx_distributed_model_runner_patch()
+    # apply_vllm_v0_neuron_model_runner_patch()
+    # apply_vllm_v0_neuronx_distributed_model_runner_patch()
+    # apply_vllm_v0_xpu_model_runner_patch()
+    # apply_vllm_v0_tpu_model_runner_patch()
 
     apply_vllm_v1_gpu_model_runner_patch()
-    apply_vllm_v1_tpu_model_runner_patch()
+    # apply_vllm_v1_tpu_model_runner_patch()
     
 
 # ====================================================================
